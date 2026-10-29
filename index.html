@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#171327">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vault">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Private Vault</title>
+
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:#11101c;color:#fff;font-family:system-ui,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0}
+.hidden{display:none!important}
+#lock{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:22px;text-align:center;background:radial-gradient(circle at top,#493078,#11101c 65%)}
+.lockbox{width:100%;max-width:380px;background:#201d30;padding:25px;border-radius:24px}
+.logo{font-size:55px;margin-bottom:12px}
+h1{font-size:26px;margin:8px 0}
+.muted{color:#aaa5c1;font-size:13px;line-height:1.6}
+input,select{width:100%;background:#302b43;color:white;border:1px solid #514766;border-radius:12px;padding:13px;margin:8px 0;outline:none}
+button.primary{background:#8959ee;color:white;border-radius:12px;padding:13px;width:100%;font-weight:bold}
+button:disabled{opacity:.5}
+header{padding:16px;padding-top:calc(16px + env(safe-area-inset-top));display:flex;justify-content:space-between;align-items:center;background:#1b1829;border-bottom:1px solid #302b43;position:sticky;top:0;z-index:4}
+header h2{font-size:18px;margin:0}
+header small{color:#aaa5c1}
+.chip{font-size:11px;background:#792c3c;padding:3px 8px;border-radius:10px;margin-left:6px}
+.icon{background:#302b43;color:white;border-radius:12px;padding:11px}
+main{padding:16px;max-width:850px;margin:auto;padding-bottom:110px}
+.hero{background:linear-gradient(135deg,#7042d2,#35245d);padding:22px;border-radius:20px}
+.stats{display:flex;gap:10px;margin-top:20px}
+.stat{flex:1;background:#ffffff17;border-radius:12px;padding:12px 4px;text-align:center}
+.stat strong{display:block;font-size:22px}
+.stat small{font-size:11px}
+h3{margin-top:24px}
+.toolbar{display:flex;gap:8px;align-items:center}
+.toolbar input,.toolbar select{min-width:0}
+.toolbar select{width:auto;padding:13px 8px}
+.toolbar .icon{white-space:nowrap}
+.filters{display:flex;gap:8px;overflow:auto;margin:12px 0}
+.filters button{background:#282439;color:#ccc;padding:10px 15px;border-radius:20px;white-space:nowrap}
+.filters button.active{background:#8959ee;color:white}
+.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{background:#201d30;border-radius:14px;overflow:hidden;min-width:0;position:relative}
+.card.sel{outline:3px solid #8959ee}
+.preview{height:150px;background:#302b43;display:grid;place-items:center;position:relative;cursor:pointer;overflow:hidden}
+.preview img,.preview video{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.badge{position:absolute;bottom:6px;left:6px;background:#000a;border-radius:8px;padding:2px 7px;font-size:12px}
+.star{position:absolute;top:6px;right:6px;background:#000a;color:#fff;border-radius:50%;width:32px;height:32px;font-size:16px;padding:0}
+.star.on{color:#ffd45e}
+.check{position:absolute;top:6px;left:6px;width:28px;height:28px;border-radius:50%;background:#000a;border:2px solid #fff;display:grid;place-items:center;font-size:15px}
+.card.sel .check{background:#8959ee}
+.details{padding:10px}
+.filename{font-size:12px;overflow-wrap:anywhere;margin-bottom:2px}
+.meta{font-size:11px;color:#aaa5c1}
+.empty{grid-column:1/-1;text-align:center;padding:40px 15px;background:#201d30;border-radius:15px;color:#aaa5c1}
+.settings{background:#201d30;border-radius:16px;padding:16px;margin:14px 0}
+.settings h3{margin-top:0}
+.settings p{color:#aaa5c1;font-size:13px;line-height:1.6}
+.settings label{font-size:13px;color:#ccc;display:block;margin-top:10px}
+.secondary{width:100%;background:#383149;color:white;padding:12px;border-radius:10px;margin-top:8px}
+.danger{width:100%;background:#792c3c;color:white;padding:12px;border-radius:10px;margin-top:8px}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-around;background:#201d30;border-top:1px solid #393249;padding:12px 5px calc(12px + env(safe-area-inset-bottom));z-index:5}
+nav button{background:none;color:#aaa5c1;font-size:11px}
+nav button span{display:block;font-size:21px;margin-bottom:4px}
+nav button.active{color:#c5b0ff}
+.fab{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));right:20px;width:58px;height:58px;border-radius:20px;background:#8959ee;color:white;font-size:32px;z-index:6}
+#selbar{position:fixed;bottom:calc(70px + env(safe-area-inset-bottom));left:12px;right:12px;display:flex;gap:8px;z-index:7;background:#201d30;padding:10px;border-radius:16px;border:1px solid #393249}
+#selbar button{flex:1;padding:12px 4px;border-radius:10px;background:#383149;color:#fff;font-size:13px}
+#selbar .del{background:#792c3c}
+#viewer,#iosModal{position:fixed;inset:0;background:#000e;z-index:20;display:flex;align-items:center;justify-content:center;padding:14px}
+.viewerbox{width:100%;max-width:650px;background:#201d30;padding:15px;border-radius:16px;max-height:92vh;overflow:auto}
+.viewerbox img,.viewerbox video{width:100%;max-height:60vh;object-fit:contain;background:#080810;border-radius:10px}
+.vnav{display:flex;gap:8px;margin-top:10px}
+.vnav button{flex:1;padding:11px 4px;border-radius:10px;background:#383149;color:#fff;font-size:12px}
+.vnav .del{background:#792c3c}
+#toast{position:fixed;bottom:100px;left:15px;right:15px;background:#493078;padding:12px;border-radius:12px;text-align:center;z-index:30;font-size:13px}
+@media(min-width:600px){.gallery{grid-template-columns:repeat(3,minmax(0,1fr))}.preview{height:190px}}
+</style>
+</head>
+<body>
+
+<section id="lock">
+ <div class="lockbox">
+  <div class="logo">🔐</div>
+  <h1>Private Vault</h1>
+  <p class="muted" id="lockText">Your pictures. Your videos. Your privacy.</p>
+  <form id="pinForm" autocomplete="off">
+   <input id="pin" type="password" inputmode="numeric" maxlength="12" placeholder="Enter PIN" required autocomplete="off">
+   <input id="pin2" class="hidden" type="password" inputmode="numeric" maxlength="12" placeholder="Confirm PIN" autocomplete="off">
+   <button class="primary" id="pinButton">Open Vault</button>
+  </form>
+  <p class="muted" id="lockMessage"></p>
+  <button class="secondary installBtn hidden" type="button">📲 Install app</button>
+ </div>
+</section>
+
+<section id="app" class="hidden">
+<header>
+ <div><h2>🔐 Private Vault<span class="chip hidden" id="offlineChip">Offline</span></h2><small>Pictures &amp; Videos</small></div>
+ <button class="icon" id="lockButton">🔒 Lock</button>
+</header>
+
+<main>
+ <section id="home">
+  <div class="hero">
+   <h2>Your private collection ✨</h2>
+   <p class="muted">Keep your pictures and videos together.</p>
+   <div class="stats">
+    <div class="stat"><strong id="total">0</strong><small>Total files</small></div>
+    <div class="stat"><strong id="pictures">0</strong><small>Pictures</small></div>
+    <div class="stat"><strong id="videos">0</strong><small>Videos</small></div>
+    <div class="stat"><strong id="favs">0</strong><small>Favorites</small></div>
+   </div>
+  </div>
+  <button class="secondary installBtn hidden" type="button">📲 Install app</button>
+  <h3>Recently added</h3>
+  <div class="gallery" id="recent"></div>
+ </section>
+
+ <section id="galleryPage" class="hidden">
+  <h2>My Gallery</h2>
+  <div class="toolbar">
+   <input id="search" placeholder="Search...">
+   <select id="sort">
+    <option value="new">Newest</option>
+    <option value="old">Oldest</option>
+    <option value="name">Name</option>
+    <option value="size">Size</option>
+   </select>
+   <button class="icon" id="selectMode">Select</button>
+  </div>
+  <div class="filters">
+   <button class="active" data-filter="all">All</button>
+   <button data-filter="image">Pictures</button>
+   <button data-filter="video">Videos</button>
+   <button data-filter="fav">★ Favorites</button>
+  </div>
+  <div class="gallery" id="gallery"></div>
+ </section>
+
+ <section id="settings" class="hidden">
+  <h2>Settings ⚙️</h2>
+
+  <div class="settings">
+   <h3>Auto-lock</h3>
+   <label for="leaveLock">When I leave the app or page</label>
+   <select id="leaveLock">
+    <option value="0">Lock immediately</option>
+    <option value="60">Lock after 1 minute away</option>
+    <option value="300">Lock after 5 minutes away</option>
+   </select>
+   <label for="idleLock">When I'm inactive</label>
+   <select id="idleLock">
+    <option value="60">After 1 minute</option>
+    <option value="180">After 3 minutes</option>
+    <option value="600">After 10 minutes</option>
+    <option value="0">Never</option>
+   </select>
+   <p>The vault always starts locked when opened.</p>
+  </div>
+
+  <div class="settings">
+   <h3>Install &amp; Offline</h3>
+   <p id="offlineStatus">Checking offline support…</p>
+   <button class="primary installBtn hidden" type="button">📲 Install app</button>
+  </div>
+
+  <div class="settings">
+   <h3>Change PIN</h3>
+   <input id="oldPin" type="password" inputmode="numeric" maxlength="12" placeholder="Current PIN">
+   <input id="newPin" type="password" inputmode="numeric" maxlength="12" placeholder="New PIN (4–12 digits)">
+   <input id="confirmPin" type="password" inputmode="numeric" maxlength="12" placeholder="Confirm new PIN">
+   <button class="primary" id="changePin">Save New PIN</button>
+  </div>
+
+  <div class="settings">
+   <h3>Backup and Restore</h3>
+   <p>Backups contain your media without encryption. Keep backup files private. Restoring replaces the current gallery. Tip: on iPhone, the Home Screen app has separate storage from Safari, so use backup/restore to move files.</p>
+   <button class="primary" id="export">Export Backup</button>
+   <button class="secondary" id="restore">Restore Backup</button>
+   <input class="hidden" type="file" id="backupFile" accept=".json,application/json">
+  </div>
+
+  <div class="settings">
+   <h3>Storage</h3>
+   <p id="storage">Browser storage is used for your media.</p>
+   <button class="secondary" id="persist">Protect my data from auto-cleanup</button>
+  </div>
+
+  <div class="settings">
+   <h3>Delete all media</h3>
+   <p>This permanently removes all media stored in this vault.</p>
+   <button class="danger" id="deleteAll">Delete Everything</button>
+  </div>
+
+  <div class="settings">
+   <h3>About Private Vault</h3>
+   <p>Installable offline web app. Version 2.0.<br>Note: the PIN locks the app screen. Media files themselves are stored on this device unencrypted.</p>
+  </div>
+ </section>
+</main>
+
+<nav>
+ <button class="active" data-page="home"><span>🏠</span>Home</button>
+ <button data-page="galleryPage"><span>🖼️</span>Gallery</button>
+ <button data-page="settings"><span>⚙️</span>Settings</button>
+</nav>
+
+<button class="fab" id="add">+</button>
+<div id="selbar" class="hidden">
+ <button id="selAll">All</button>
+ <button id="selFav">★ Favorite</button>
+ <button class="del" id="selDel">Delete (0)</button>
+ <button id="selCancel">Cancel</button>
+</div>
+<input class="hidden" type="file" id="mediaFiles" accept="image/*,video/*" multiple>
+</section>
+
+<div id="viewer" class="hidden">
+ <div class="viewerbox">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px">
+   <strong id="viewerName" style="overflow-wrap:anywhere;font-size:14px">Preview</strong>
+   <button class="icon" id="closeViewer">✕</button>
+  </div>
+  <div id="viewerContent"></div>
+  <div class="vnav">
+   <button id="vPrev">◀ Prev</button>
+   <span class="muted" id="vCount" style="align-self:center"></span>
+   <button id="vNext">Next ▶</button>
+  </div>
+  <div class="vnav">
+   <button id="vFav">★</button>
+   <button id="vRename">Rename</button>
+   <button id="vDownload">Save</button>
+   <button id="vShare">Share</button>
+   <button class="del" id="vDelete">Delete</button>
+  </div>
+ </div>
+</div>
+
+<div id="iosModal" class="hidden">
+ <div class="viewerbox" style="max-width:400px">
+  <h3 style="margin-top:0">📲 Install on iPhone / iPad</h3>
+  <p class="muted" id="iosText">1. Open this page in <b>Safari</b>.<br>2. Tap the <b>Share</b> button (square with arrow).<br>3. Scroll and tap <b>Add to Home Screen</b>.<br>4. Tap <b>Add</b>. Open the vault from the new icon.</p>
+  <button class="primary" id="iosClose">Got it</button>
+ </div>
+</div>
+
+<div id="toast" class="hidden"></div>
+
+<script>
+"use strict";
+
+/* ---------- Installable manifest + icons (generated, no extra files) ---------- */
+(function(){
+ function makeIcon(size){
+  const c=document.createElement("canvas");c.width=c.height=size;
+  const x=c.getContext("2d"),s=size;
+  const g=x.createLinearGradient(0,0,s,s);g.addColorStop(0,"#7042d2");g.addColorStop(1,"#241a40");
+  x.fillStyle=g;x.fillRect(0,0,s,s);
+  x.fillStyle="#fff";
+  x.beginPath();
+  const bx=s*.3,by=s*.46,bw=s*.4,bh=s*.28,r=s*.05;
+  x.moveTo(bx+r,by);x.arcTo(bx+bw,by,bx+bw,by+bh,r);x.arcTo(bx+bw,by+bh,bx,by+bh,r);
+  x.arcTo(bx,by+bh,bx,by,r);x.arcTo(bx,by,bx+bw,by,r);x.fill();
+  x.strokeStyle="#fff";x.lineWidth=s*.055;x.lineCap="round";
+  x.beginPath();x.arc(s/2,by,s*.12,Math.PI,0);x.stroke();
+  x.fillStyle="#5a35b0";x.beginPath();x.arc(s/2,by+bh*.45,s*.035,0,7);x.fill();
+  return c.toDataURL("image/png");
+ }
+ try{
+  const i192=makeIcon(192),i512=makeIcon(512),i180=makeIcon(180);
+  const base=new URL("./",location.href).href;
+  const manifest={
+   name:"Private Vault",short_name:"Vault",id:base,start_url:base,scope:base,
+   display:"standalone",orientation:"portrait",
+   background_color:"#11101c",theme_color:"#171327",
+   description:"Private picture and video vault",
+   icons:[
+    {src:i192,sizes:"192x192",type:"image/png",purpose:"any"},
+    {src:i512,sizes:"512x512",type:"image/png",purpose:"any"},
+    {src:i512,sizes:"512x512",type:"image/png",purpose:"maskable"}
+   ]
+  };
+  const m=document.createElement("link");m.rel="manifest";
+  m.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"}));
+  document.head.appendChild(m);
+  const a=document.createElement("link");a.rel="apple-touch-icon";a.href=i180;document.head.appendChild(a);
+  const f=document.createElement("link");f.rel="icon";f.href=i192;document.head.appendChild(f);
+ }catch(e){console.error(e)}
+ if("serviceWorker" in navigator && location.protocol!=="file:"){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+ }
+})();
+
+/* ---------- Constants / state ---------- */
+const DB="PrivateVaultChromeDB";
+const STORE="media";
+const LEGACY="privateVaultPinHash";   // old plain PIN (auto-migrated)
+const HASHKEY="pvPinHash2";
+const SALTKEY="pvPinSalt2";
+const FAILKEY="pvFails";
+const UNTILKEY="pvLockUntil";
+const LEAVEKEY="pvLeave";
+const IDLEKEY="pvIdle";
+
+let database,activePage="home",filter="all",unlocked=false,toastTimer;
+let hiddenAt=0,picking=false,lastAct=Date.now();
+let selectMode=false;const selected=new Set();
+let viewList=[],viewIndex=0,currentItems=[];
+const pools={recent:[],gallery:[],viewer:[]};
+
+const $=id=>document.getElementById(id);
+
+function toast(m){
+ $("toast").textContent=m;$("toast").classList.remove("hidden");
+ clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toast").classList.add("hidden"),3000);
+}
+function makeURL(blob,pool){const u=URL.createObjectURL(blob);pools[pool].push(u);return u}
+function clearPool(p){pools[p].forEach(u=>URL.revokeObjectURL(u));pools[p]=[]}
+function formatBytes(n){
+ if(n<1024)return n+" B";
+ if(n<1048576)return (n/1024).toFixed(1)+" KB";
+ if(n<1073741824)return (n/1048576).toFixed(1)+" MB";
+ return (n/1073741824).toFixed(2)+" GB";
+}
+
+/* ---------- IndexedDB ---------- */
+function openDB(){
+ return new Promise((res,rej)=>{
+  const r=indexedDB.open(DB,1);
+  r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:"id",autoIncrement:true})};
+  r.onsuccess=()=>{database=r.result;res(database)};
+  r.onerror=()=>rej(r.error);
+ });
+}
+function getAll(){
+ return new Promise((res,rej)=>{
+  const r=database.transaction(STORE,"readonly").objectStore(STORE).getAll();
+  r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);
+ });
+}
+function putRecord(rec){
+ return new Promise((res,rej)=>{
+  const tx=database.transaction(STORE,"readwrite");tx.objectStore(STORE).put(rec);
+  tx.oncomplete=res;tx.onerror=()=>rej(tx.error);
+ });
+}
+function deleteRecords(ids){
+ return new Promise((res,rej)=>{
+  const tx=database.transaction(STORE,"readwrite");const s=tx.objectStore(STORE);
+  ids.forEach(id=>s.delete(id));
+  tx.oncomplete=res;tx.onerror=()=>rej(tx.error);
+ });
+}
+
+/* ---------- PIN (hashed) ---------- */
+const b64=a=>btoa(String.fromCharCode(...a));
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function hashPin(pin,salt){
+ if(!(window.crypto&&crypto.subtle))return "plain:"+pin;
+ const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveBits"]);
+ const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt:unb64(salt),iterations:150000,hash:"SHA-256"},k,256);
+ return b64(new Uint8Array(bits));
+}
+async function setPin(pin){
+ const salt=b64(crypto.getRandomValues(new Uint8Array(16)));
+ localStorage.setItem(SALTKEY,salt);
+ localStorage.setItem(HASHKEY,await hashPin(pin,salt));
+ localStorage.removeItem(LEGACY);
+}
+async function verifyPin(pin){
+ const h=localStorage.getItem(HASHKEY);
+ if(h)return (await hashPin(pin,localStorage.getItem(SALTKEY)))===h;
+ const old=localStorage.getItem(LEGACY);
+ if(old!==null&&pin===old){await setPin(pin);return true}
+ return false;
+}
+const hasPin=()=>!!(localStorage.getItem(HASHKEY)||localStorage.getItem(LEGACY));
+const validPin=p=>/^\d{4,12}$/.test(p);
+
+async function init(){
+ try{
+  await openDB();
+  setupLockScreen();
+ }catch(e){
+  $("lockMessage").textContent="Could not open browser storage.";
+  $("pinButton").disabled=true;
+ }
+}
+function setupLockScreen(){
+ if(hasPin()){
+  $("lockText").textContent="Enter your PIN to open the vault.";
+  $("pinButton").textContent="Unlock Vault";
+  $("pin2").classList.add("hidden");$("pin2").required=false;
+ }else{
+  $("lockText").textContent="Create a PIN (4–12 digits) to start your new vault.";
+  $("pinButton").textContent="Create Vault";
+  $("pin2").classList.remove("hidden");$("pin2").required=true;
+ }
+}
+
+$("pinForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const entered=$("pin").value;
+ const msg=$("lockMessage");
+ const until=+localStorage.getItem(UNTILKEY)||0;
+ if(Date.now()<until){
+  msg.textContent="Too many attempts. Try again in "+Math.ceil((until-Date.now())/1000)+"s.";
+  return;
+ }
+ if(!validPin(entered)){msg.textContent="PIN must contain 4–12 digits.";return}
+
+ if(!hasPin()){
+  if(entered!==$("pin2").value){msg.textContent="PINs do not match.";return}
+  await setPin(entered);msg.textContent="";enter();return;
+ }
+ if(await verifyPin(entered)){
+  localStorage.removeItem(FAILKEY);localStorage.removeItem(UNTILKEY);
+  msg.textContent="";enter();
+ }else{
+  const f=(+localStorage.getItem(FAILKEY)||0)+1;
+  localStorage.setItem(FAILKEY,f);
+  if(f>=5){
+   const wait=Math.min(30*Math.pow(2,f-5),3600);
+   localStorage.setItem(UNTILKEY,Date.now()+wait*1000);
+   msg.textContent="Too many attempts. Locked for "+wait+"s.";
+  }else{
+   msg.textContent="Incorrect PIN. "+(5-f)+" tries left before a delay.";
+  }
+  $("pin").value="";
+ }
+});
+
+function enter(){
+ unlocked=true;lastAct=Date.now();hiddenAt=0;
+ $("lock").classList.add("hidden");$("app").classList.remove("hidden");
+ $("pin").value="";$("pin2").value="";
+ showPage("home");refresh();
+ if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+}
+
+function lock(){
+ unlocked=false;picking=false;
+ clearPool("recent");clearPool("gallery");clearPool("viewer");
+ $("viewerContent").replaceChildren();
+ $("viewer").classList.add("hidden");
+ $("recent").replaceChildren();$("gallery").replaceChildren();
+ selected.clear();selectMode=false;updateSelUI();
+ $("app").classList.add("hidden");
+ $("lock").classList.remove("hidden");
+ $("pin").value="";$("pin2").value="";$("lockMessage").textContent="";
+ setupLockScreen();
+}
+$("lockButton").onclick=lock;
+
+/* ---------- Auto-lock ---------- */
+const leaveSecs=()=>+(localStorage.getItem(LEAVEKEY)||0);
+const idleSecs=()=>+(localStorage.getItem(IDLEKEY)||180);
+
+document.addEventListener("visibilitychange",()=>{
+ if(!unlocked)return;
+ if(document.visibilityState==="hidden"){
+  hiddenAt=Date.now();
+  if(!picking&&leaveSecs()===0)lock();
+ }else{
+  const away=(Date.now()-hiddenAt)/1000;
+  const limit=picking?180:leaveSecs();
+  if(hiddenAt&&away>=limit)lock();
+  setTimeout(()=>{picking=false},1500);
+ }
+});
+window.addEventListener("pagehide",()=>{if(unlocked&&!picking&&leaveSecs()===0)lock()});
+window.addEventListener("pageshow",e=>{if(e.persisted&&leaveSecs()===0&&unlocked)lock()});
+
+["pointerdown","keydown","touchstart","scroll"].forEach(ev=>
+ window.addEventListener(ev,()=>{lastAct=Date.now()},{capture:true,passive:true}));
+setInterval(()=>{
+ if(!unlocked||picking)return;
+ const s=idleSecs();if(!s)return;
+ const v=document.querySelector("#viewerContent video");
+ if(v&&!v.paused)return;
+ if(Date.now()-lastAct>s*1000)lock();
+},5000);
+
+/* ---------- Navigation ---------- */
+function showPage(page){
+ if(!unlocked)return;
+ activePage=page;
+ ["home","galleryPage","settings"].forEach(id=>$(id).classList.toggle("hidden",id!==page));
+ document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+ $("add").classList.toggle("hidden",page==="settings");
+ if(page!=="galleryPage"&&selectMode){selectMode=false;selected.clear();updateSelUI()}
+ if(page==="galleryPage")renderGallery();
+ window.scrollTo(0,0);
+}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+document.querySelectorAll("[data-filter]").forEach(b=>{
+ b.onclick=()=>{
+  filter=b.dataset.filter;
+  document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("active",x===b));
+  renderGallery();
+ };
+});
+
+/* ---------- Add media ---------- */
+$("add").onclick=()=>{picking=true;$("mediaFiles").click()};
+$("mediaFiles").addEventListener("cancel",()=>{picking=false});
+$("mediaFiles").onchange=async e=>{
+ const files=Array.from(e.target.files||[]);
+ e.target.value="";picking=false;
+ let count=0;
+ for(const file of files){
+  const type=file.type.startsWith("image/")?"image":file.type.startsWith("video/")?"video":null;
+  if(!type)continue;
+  try{
+   await putRecord({name:file.name,type,mime:file.type,blob:file,size:file.size,createdAt:Date.now(),fav:false});
+   count++;
+  }catch(err){console.error(err);toast("Storage full or file too large.")}
+ }
+ await refresh();
+ toast(count+" file(s) added.");
+};
+
+/* ---------- Rendering ---------- */
+function makeCard(item,pool,list,idx,allowSelect){
+ const card=document.createElement("div");
+ card.className="card"+(selected.has(item.id)?" sel":"");
+
+ const preview=document.createElement("div");preview.className="preview";
+ const url=makeURL(item.blob,pool);
+ if(item.type==="image"){
+  const img=document.createElement("img");img.alt=item.name;img.loading="lazy";img.src=url;preview.appendChild(img);
+ }else{
+  const v=document.createElement("video");v.muted=true;v.preload="metadata";v.playsInline=true;v.src=url+"#t=0.1";
+  preview.appendChild(v);
+  const b=document.createElement("span");b.className="badge";b.textContent="▶ Video";preview.appendChild(b);
+ }
+ preview.onclick=()=>{
+  if(selectMode&&allowSelect){
+   selected.has(item.id)?selected.delete(item.id):selected.add(item.id);
+   card.classList.toggle("sel");updateSelUI();
+  }else openViewer(list,idx);
+ };
+
+ if(selectMode&&allowSelect){
+  const c=document.createElement("div");c.className="check";c.textContent=selected.has(item.id)?"✓":"";
+  preview.appendChild(c);
+ }
+
+ const star=document.createElement("button");
+ star.className="star"+(item.fav?" on":"");star.textContent=item.fav?"★":"☆";
+ star.onclick=async ev=>{ev.stopPropagation();item.fav=!item.fav;await putRecord(item);await refresh()};
+ preview.appendChild(star);
+
+ const details=document.createElement("div");details.className="details";
+ const name=document.createElement("div");name.className="filename";name.textContent=item.name;
+ const meta=document.createElement("div");meta.className="meta";
+ meta.textContent=formatBytes(item.size||0)+" · "+new Date(item.createdAt).toLocaleDateString();
+ details.append(name,meta);
+ card.append(preview,details);
+ return card;
+}
+
+function renderItems(targetId,pool,items,allowSelect){
+ clearPool(pool);
+ const target=$(targetId);target.replaceChildren();
+ if(!items.length){
+  const e=document.createElement("div");e.className="empty";
+  e.textContent="Nothing here yet. Tap + to add pictures or videos.";
+  target.appendChild(e);return;
+ }
+ items.forEach((it,i)=>target.appendChild(makeCard(it,pool,items,i,allowSelect)));
+}
+
+async function renderGallery(){
+ if(!unlocked)return;
+ const q=$("search").value.toLowerCase().trim();
+ const all=await getAll();
+ const sort=$("sort").value;
+ let items=all.filter(x=>
+  (filter==="all"||(filter==="fav"?x.fav:x.type===filter))&&x.name.toLowerCase().includes(q));
+ items.sort((a,b)=>
+  sort==="old"?a.createdAt-b.createdAt:
+  sort==="name"?a.name.localeCompare(b.name):
+  sort==="size"?(b.size||0)-(a.size||0):b.createdAt-a.createdAt);
+ currentItems=items;
+ renderItems("gallery","gallery",items,true);
+}
+
+async function refresh(){
+ if(!unlocked)return;
+ const all=await getAll();
+ $("total").textContent=all.length;
+ $("pictures").textContent=all.filter(x=>x.type==="image").length;
+ $("videos").textContent=all.filter(x=>x.type==="video").length;
+ $("favs").textContent=all.filter(x=>x.fav).length;
+ const recent=all.slice().sort((a,b)=>b.createdAt-a.createdAt).slice(0,4);
+ renderItems("recent","recent",recent,false);
+ const size=all.reduce((n,x)=>n+(x.size||0),0);
+ let text=all.length+" files stored. Total media size: "+formatBytes(size);
+ if(navigator.storage&&navigator.storage.estimate){
+  try{const e=await navigator.storage.estimate();
+   text+=". Device quota used: "+formatBytes(e.usage||0)+" of about "+formatBytes(e.quota||0);}catch(_){}
+ }
+ $("storage").textContent=text;
+ if(activePage==="galleryPage")await renderGallery();
+}
+$("search").addEventListener("input",renderGallery);
+$("sort").addEventListener("change",renderGallery);
+
+/* ---------- Select mode ---------- */
+function updateSelUI(){
+ $("selbar").classList.toggle("hidden",!selectMode);
+ $("selectMode").textContent=selectMode?"Done":"Select";
+ $("selDel").textContent="Delete ("+selected.size+")";
+ $("add").classList.toggle("hidden",selectMode||activePage==="settings");
+}
+$("selectMode").onclick=()=>{selectMode=!selectMode;selected.clear();updateSelUI();renderGallery()};
+$("selCancel").onclick=()=>{selectMode=false;selected.clear();updateSelUI();renderGallery()};
+$("selAll").onclick=()=>{
+ if(selected.size===currentItems.length)selected.clear();
+ else currentItems.forEach(i=>selected.add(i.id));
+ updateSelUI();renderGallery();
+};
+$("selFav").onclick=async()=>{
+ if(!selected.size)return;
+ for(const it of currentItems.filter(i=>selected.has(i.id))){it.fav=true;await putRecord(it)}
+ toast("Added to favorites.");selectMode=false;selected.clear();updateSelUI();await refresh();
+};
+$("selDel").onclick=async()=>{
+ if(!selected.size)return;
+ if(!confirm("Delete "+selected.size+" selected file(s)?"))return;
+ await deleteRecords([...selected]);
+ selected.clear();selectMode=false;updateSelUI();await refresh();toast("Deleted.");
+};
+
+/* ---------- Viewer ---------- */
+function showViewer(){
+ clearPool("viewer");
+ const item=viewList[viewIndex];
+ if(!item){closeViewer();return}
+ $("viewerName").textContent=item.name;
+ $("vCount").textContent=(viewIndex+1)+" / "+viewList.length;
+ $("vFav").textContent=item.fav?"★ Saved":"☆ Fav";
+ $("viewerContent").replaceChildren();
+ const url=makeURL(item.blob,"viewer");
+ let el;
+ if(item.type==="image"){el=document.createElement("img");el.src=url}
+ else{el=document.createElement("video");el.src=url;el.controls=true;el.playsInline=true}
+ $("viewerContent").appendChild(el);
+}
+function openViewer(list,idx){
+ viewList=list;viewIndex=idx;showViewer();$("viewer").classList.remove("hidden");
+}
+function closeViewer(){
+ $("viewerContent").querySelectorAll("video").forEach(v=>v.pause());
+ $("viewerContent").replaceChildren();
+ $("viewer").classList.add("hidden");clearPool("viewer");
+}
+function step(d){
+ if(viewList.length<2)return;
+ viewIndex=(viewIndex+d+viewList.length)%viewList.length;
+ $("viewerContent").querySelectorAll("video").forEach(v=>v.pause());
+ showViewer();
+}
+$("closeViewer").onclick=closeViewer;
+$("viewer").onclick=e=>{if(e.target===$("viewer"))closeViewer()};
+$("vPrev").onclick=()=>step(-1);
+$("vNext").onclick=()=>step(1);
+document.addEventListener("keydown",e=>{
+ if($("viewer").classList.contains("hidden"))return;
+ if(e.key==="ArrowLeft")step(-1);
+ if(e.key==="ArrowRight")step(1);
+ if(e.key==="Escape")closeViewer();
+});
+let tx0=0;
+$("viewerContent").addEventListener("touchstart",e=>{tx0=e.changedTouches[0].clientX},{passive:true});
+$("viewerContent").addEventListener("touchend",e=>{
+ const dx=e.changedTouches[0].clientX-tx0;
+ if(Math.abs(dx)>60)step(dx<0?1:-1);
+},{passive:true});
+
+$("vFav").onclick=async()=>{
+ const it=viewList[viewIndex];it.fav=!it.fav;await putRecord(it);
+ $("vFav").textContent=it.fav?"★ Saved":"☆ Fav";await refresh();
+};
+$("vRename").onclick=async()=>{
+ const it=viewList[viewIndex];
+ const n=prompt("New name:",it.name);
+ if(!n||!n.trim())return;
+ it.name=n.trim();await putRecord(it);$("viewerName").textContent=it.name;await refresh();
+};
+$("vDownload").onclick=()=>{
+ const it=viewList[viewIndex];
+ picking=true;
+ const u=URL.createObjectURL(it.blob);
+ const a=document.createElement("a");a.href=u;a.download=it.name;
+ document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>{URL.revokeObjectURL(u);picking=false},5000);
+};
+$("vShare").onclick=async()=>{
+ const it=viewList[viewIndex];
+ const file=new File([it.blob],it.name,{type:it.mime||it.blob.type});
+ if(navigator.canShare&&navigator.canShare({files:[file]})){
+  picking=true;
+  try{await navigator.share({files:[file]})}catch(_){}
+  setTimeout(()=>{picking=false},1500);
+ }else toast("Sharing isn't supported here. Use Save.");
+};
+$("vDelete").onclick=async()=>{
+ const it=viewList[viewIndex];
+ if(!confirm("Delete this file from your vault?"))return;
+ await deleteRecords([it.id]);
+ closeViewer();await refresh();toast("File deleted.");
+};
+
+/* ---------- Settings ---------- */
+$("leaveLock").value=String(leaveSecs());
+$("idleLock").value=String(idleSecs());
+$("leaveLock").onchange=e=>localStorage.setItem(LEAVEKEY,e.target.value);
+$("idleLock").onchange=e=>localStorage.setItem(IDLEKEY,e.target.value);
+
+$("changePin").onclick=async()=>{
+ const old=$("oldPin").value,next=$("newPin").value,conf=$("confirmPin").value;
+ if(!(await verifyPin(old))){toast("Current PIN is incorrect.");return}
+ if(!validPin(next)){toast("New PIN must contain 4–12 digits.");return}
+ if(next!==conf){toast("New PINs do not match.");return}
+ await setPin(next);
+ ["oldPin","newPin","confirmPin"].forEach(id=>$(id).value="");
+ toast("PIN changed.");
+};
+
+$("persist").onclick=async()=>{
+ if(navigator.storage&&navigator.storage.persist){
+  const ok=await navigator.storage.persist();
+  toast(ok?"Your data is protected from auto-cleanup.":"Browser declined. Installing the app helps.");
+ }else toast("Not supported on this browser.");
+};
+
+function blobToDataURL(blob){
+ return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsDataURL(blob)});
+}
+$("export").onclick=async()=>{
+ if(!confirm("Export an unencrypted backup? Keep it private."))return;
+ picking=true;
+ try{
+  const all=await getAll();const records=[];
+  for(const it of all){
+   records.push({name:it.name,type:it.type,mime:it.mime,size:it.size,createdAt:it.createdAt,fav:!!it.fav,data:await blobToDataURL(it.blob)});
+  }
+  const blob=new Blob([JSON.stringify({app:"PrivateVault",version:1,records})],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download="PrivateVault-backup.json";
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>{URL.revokeObjectURL(url);picking=false},5000);
+  toast("Backup exported.");
+ }catch(e){picking=false;toast("Export failed. Try fewer or smaller files.")}
+};
+
+$("restore").onclick=()=>{picking=true;$("backupFile").click()};
+$("backupFile").addEventListener("cancel",()=>{picking=false});
+$("backupFile").onchange=async e=>{
+ const file=e.target.files[0];e.target.value="";picking=false;
+ if(!file)return;
+ if(!confirm("Restoring will replace all current vault media. Continue?"))return;
+ try{
+  const backup=JSON.parse(await file.text());
+  if(backup.app!=="PrivateVault"||backup.version!==1||!Array.isArray(backup.records))throw new Error("Unsupported backup");
+  const records=[];
+  for(const it of backup.records){
+   if(!it.data||!["image","video"].includes(it.type))throw new Error("Invalid media");
+   const blob=await (await fetch(it.data)).blob();
+   records.push({name:it.name,type:it.type,mime:it.mime,size:blob.size,blob,createdAt:it.createdAt||Date.now(),fav:!!it.fav});
+  }
+  await new Promise((res,rej)=>{
+   const tx=database.transaction(STORE,"readwrite");const s=tx.objectStore(STORE);
+   s.clear();records.forEach(r=>s.add(r));
+   tx.oncomplete=res;tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error);
+  });
+  await refresh();toast("Backup restored.");
+ }catch(err){console.error(err);toast("Restore failed. Check the backup file.")}
+};
+
+$("deleteAll").onclick=async()=>{
+ if(prompt("Type DELETE to erase all vault media.")!=="DELETE"){toast("Cancelled.");return}
+ await new Promise((res,rej)=>{
+  const tx=database.transaction(STORE,"readwrite");tx.objectStore(STORE).clear();
+  tx.oncomplete=res;tx.onerror=()=>rej(tx.error);
+ });
+ await refresh();toast("All media deleted.");
+};
+
+/* ---------- Install button (Android/Chrome + iOS) ---------- */
+let deferredPrompt=null;
+const isStandalone=()=>window.matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+
+function updateInstallBtns(){
+ const show=!isStandalone()&&(deferredPrompt||isIOS()||true);
+ document.querySelectorAll(".installBtn").forEach(b=>b.classList.toggle("hidden",!show));
+}
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;updateInstallBtns()});
+window.addEventListener("appinstalled",()=>{deferredPrompt=null;updateInstallBtns();toast("Installed! Open it from your home screen.")});
+document.querySelectorAll(".installBtn").forEach(b=>b.onclick=async()=>{
+ if(deferredPrompt){
+  picking=true;deferredPrompt.prompt();
+  try{await deferredPrompt.userChoice}catch(_){}
+  deferredPrompt=null;picking=false;updateInstallBtns();
+ }else if(isIOS()){
+  $("iosModal").classList.remove("hidden");
+ }else{
+  $("iosText").innerHTML="Open the browser menu (⋮) and tap <b>Install app</b> or <b>Add to Home screen</b>. If you don't see it, make sure you opened the page over https and wait a few seconds after the first load.";
+  $("iosModal").classList.remove("hidden");
+ }
+});
+$("iosClose").onclick=()=>$("iosModal").classList.add("hidden");
+updateInstallBtns();
+
+/* ---------- Offline status ---------- */
+function updateNet(){$("offlineChip").classList.toggle("hidden",navigator.onLine)}
+window.addEventListener("online",updateNet);window.addEventListener("offline",updateNet);updateNet();
+if("serviceWorker" in navigator&&location.protocol!=="file:"){
+ navigator.serviceWorker.ready.then(()=>{$("offlineStatus").textContent="✅ Offline ready. The app works without internet."}).catch(()=>{});
+ setTimeout(()=>{if($("offlineStatus").textContent.startsWith("Checking"))$("offlineStatus").textContent="⚠️ Offline not active yet. Make sure sw.js is uploaded next to index.html, then reload once."},4000);
+}else{
+ $("offlineStatus").textContent="Offline mode needs the app opened from https (e.g. GitHub Pages) with sw.js uploaded.";
+}
+
+init();
+</script>
+</body>
+</html>
